@@ -1,0 +1,132 @@
+---
+title: "Analysis of different classification models"
+author: 
+      - name: "Viren Sasalu"
+
+format:
+  html: 
+    code-tools: true
+    code-overflow: wrap
+    code-line-numbers: true
+    embed-resources: true
+editor: visual
+code-annotations: hover
+execute:
+  warning: false      
+---
+
+## High level goal
+
+To visualize different Machine Learning Classification Algorithms which can help identify whether a particular tumor is malignant or benign.
+
+## Dataset
+
+```{r}
+#| label: load-dataset
+#| message: false
+```
+
+Source: The data set we choose for this project is "Breast Cancer Diagnostic Data" we are getting the data set from UCI Machine Learning Repository: <https://archive.ics.uci.edu/ml/datasets/Breast+Cancer+Wisconsin+%28Diagnostic%29>
+
+The source of dataset <https://www.kaggle.com/datasets/uciml/breast-cancer-wisconsin-data>
+
+## **Why this Data set?**
+
+The **Breast Cancer Wisconsin Diagnostic Dataset** is a widely used, high-quality dataset containing **569 samples** with **30 features** that describe tumor characteristics, allowing for effective **benign vs. malignant** binary classification. Its clinical relevance, well-labeled structure, and feature variety make it ideal for developing and benchmarking diagnostic models in machine learning.
+
+This dataset is characterized by its **low dimensionality**, making it particularly well-suited for testing various classification algorithms and benchmarking their performance. It provides a reliable foundation for researchers and students to build predictive models, contributing to advancements in medical diagnostics and offering a valuable educational tool.
+
+## Basic EDA
+
+```{r}
+library(ggplot2)
+library(dplyr)
+
+your_dataset <- read.csv("data/cancer_dataset.csv")
+
+# View the first few rows of the dataset
+head(your_dataset)
+
+# Get a summary of the dataset
+summary(your_dataset)
+
+# Check the structure of the dataset
+str(your_dataset)
+
+# Check for missing values
+sum(is.na(your_dataset))
+
+# Descriptive statistics
+describe <- your_dataset %>% 
+  summarise_all(list(mean = ~mean(., na.rm = TRUE), sd = ~sd(., na.rm = TRUE)))
+print(describe)
+num_rows <- nrow(your_dataset)
+cat("Number of rows:", num_rows, "\n")
+num_cols <- ncol(your_dataset)
+cat("Number of columns:", num_cols, "\n")
+unique_values <- sapply(your_dataset, function(x) length(unique(x)))
+cat("Unique values per column:\n")
+print(unique_values)
+```
+
+## Questions
+
+**Question 1**: How does the accuracy of a mdoel compare to another when predicting the diagnosis? Which model performs best on the test set?
+
+#####Approach: - We will be using three models: SVM, Logistic Regression, Naive Baye's. - After training the model with the dataset, we will compare and analyze the the accuracy of the model’s performance.
+
+#####Why this question: We chose this question because comparing the accuracy of different models, like Logistic Regression, NB and SVM, is essential for identifying the best-performing model on the test set. This question helps you understand which model is most effective for predicting the diagnosis in a dataset.
+
+#####Visuals: - We will plot a bar chart with model type on one axis and accuracy score on the other. This will show an excellent contrast between the models.
+
+**Question 2**: How do the Receiver Operating Characteristic (ROC) curves and Area Under the Curve (AUC) scores differ among the models? This can show which model offers the best trade-off between true positive and false positive rates.
+
+\
+#####Approach: We will be using three models: SVM ,LR and NB. - After training the model with the dataset, we will compare the ROC and the AUC which represents the probability of that the model, if given a randomly chosen positive and negative example, will rank the positive higher than the negative.
+
+#####Why this question: This question is valuable because comparing ROC curves and AUC scores provides insight into each model’s ability to balance true positives and false positives. It helps identify the model with the best overall performance, especially when handling imbalanced data or cases where both sensitivity and specificity are important.
+
+#####Visuals: we will plot a 3D surface with true positive rate, false positive rate, and AUC values, where each model is represented as a unique surface. This gives a spatial view of each model’s trade-off between TPR and FPR.
+
+**Question 3**: How do the top two correlated features with the target variable influence the classifications of SVM, Logistic Regression, and Naive Bayes?
+
+#####Approach: Use the correlation matrix to find the two best features that have the highest correlation with the target variable. Train two of the best performing models on all the features and then visualize the classification regions and decision boundary using only the two best features mapped to the two axes while trained on all the features.
+
+#####Why this question: This question allows us to understand how the top two influential features impact classification and provides insights into each model’s decision-making process. It also highlights the effectiveness of the models in separating classes using key variables, even when trained on the full dataset.
+
+#####Visuals: We will use a scatter plot with the top two features on each axis and visualize how the different models classify the data points using different colors to mark different classes.\
+\
+
+## Poster Storyboarding
+
+Here is the outline for our poster.
+
+-   Introduction
+
+    -   Briefly state the project topic
+
+-   Description of data
+
+    -   A brief intro about the dataset.
+
+-   Models Explored
+
+    -   Visualizations are done based on three questions which assess different classification models .
+
+    -   For each question, we use different key metrics to compare their performance.
+
+-   Conclusions
+
+    -   Summarize the accuracy and performance of each model.
+
+    -   State the meaning of our project, such as importance of model selection.
+
+-   Future Work
+
+    -   Discuss how we can improve on the parameters of each model and visualize for deeper insights.
+
+    -   Discuss what other additional models can be studied about.
+
+-   References
+
+    -   List the references for this project, such as the links to the datasets

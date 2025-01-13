@@ -1,0 +1,70 @@
+---
+title: Analysis of different classification model
+author:
+  - name: Epidata —— Gaurangi Raul, Viren Sasalu,Bhaskar Kashyap, Tushar Vimal
+column_numbers: 3
+output: 
+  posterdown::posterdown_html:
+    self_contained: false
+bibliography: packages.bib
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+# Introduction
+The aim is to identify the most effective model for breast cancer diagnosis and demonstrate how machine learning can enable accurate, automated decision-making in healthcare.
+
+
+# Exploration
+
+### Accuracy of the model based on train, validation and test set
+
+
+
+### How ROC curve and AUC score differ among the models 
+
+
+
+### The influence of two correlated features with target variable on models
+
+
+
+
+
+
+# Conclusions
+
+Logistic Regression performed the best as it assumes linear separability between the target and features, which aligns well with the dataset’s characteristics. while Naive Bayes performed the worst due to its assumption of feature independence, which was violated as many predictors were highly correlated. SVM is highly sensitive to hyper-parameter if the data is linearly separable might not offer significant advantages over logistic regression. Hence, model selection is very important.
+
+
+# Future work
+-Optimize the parameters of each model through hyperparameter tuning and analyze the resulting improvements.
+
+-Investigate additional models like Decision Trees, KNNs, and compare their performance with the current ones.
+
+-Study and visualize alternative model evaluation metrics for deeper insights.
+
+
+# References
+
+-Dataset Source:
+
+UCI Machine Learning Repository: Breast Cancer Wisconsin (Diagnostic) Dataset. Link
+
+-Machine Learning Algorithms:
+
+Hastie, T., Tibshirani, R., & Friedman, J. (2009). The Elements of Statistical Learning: Data Mining, Inference, and Prediction. Springer.
+
+Murphy, K. P. (2012). Machine Learning: A Probabilistic Perspective. MIT Press.
+
+-R Libraries Used:
+
+Chang, W., et al. (2023). plotly: Create Interactive Web Graphics via ‘plotly.js’. R package version 4.10.1.
+
+R Core Team (2023). R: A Language and Environment for Statistical Computing. R Foundation for Statistical Computing, Vienna, Austria
+
+-Correlation Analysis:
+
+Schober, P., Boer, C., & Schwarte, L. A. (2018). Correlation Coefficients: Appropriate Use and Interpretation. Anesthesia & Analgesia, 126(5), 1763–1768.

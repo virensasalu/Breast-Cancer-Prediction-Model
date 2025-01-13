@@ -1,0 +1,199 @@
+---
+title: "New All Models"
+format: html
+editor: visual
+---
+
+```{r}
+library(e1071)
+library(caret)
+library(kernlab)
+library(plotly)
+```
+
+```{r}
+# Load dataset
+training_set <- read.csv("/Users/virensasalu/Downloads/train_set.csv")
+validation_set <- read.csv("/Users/virensasalu/Downloads/valid_set.csv")
+test_set <- read.csv("/Users/virensasalu/Downloads/test_set.csv")
+```
+
+```{r}
+# Convert diagnosis to factor
+training_set$diagnosis <- as.factor(training_set$diagnosis)
+validation_set$diagnosis <- as.factor(validation_set$diagnosis)
+test_set$diagnosis <- as.factor(test_set$diagnosis)
+
+```
+
+```{r}
+# Train SVM model
+svm_model <- svm(diagnosis ~ ., data = training_set, kernel = "radial", cost = 1, gamma = 0.01, probability = TRUE)
+
+
+```
+
+```{r}
+# Train Naive Bayes model
+nb_model <- naiveBayes(diagnosis ~ ., data = training_set)
+```
+
+```{r}
+# Train Logistic Regression model
+logistic_model <- glm(diagnosis ~ ., data = training_set, family = binomial)
+
+```
+
+```{r}
+library(pROC)
+# SVM
+svm_pred_prob <- predict(svm_model, test_set, probability = TRUE)
+svm_probabilities <- attr(svm_pred_prob, "probabilities")[, 2]
+roc_svm <- roc(test_set$diagnosis, svm_probabilities)
+auc_svm <- auc(roc_svm)
+
+# Naive Bayes
+nb_pred_prob <- predict(nb_model, test_set, type = "raw")[, 2]
+roc_nb <- roc(test_set$diagnosis, nb_pred_prob)
+auc_nb <- auc(roc_nb)
+
+# Logistic Regression
+logistic_pred_prob <- predict(logistic_model, test_set, type = "response")
+roc_logistic <- roc(test_set$diagnosis, logistic_pred_prob)
+auc_logistic <- auc(roc_logistic)
+
+# Print AUC
+print(paste("AUC for Logistic Regression:", auc_logistic))
+```
+
+```{r}
+# Extract TPR, FPR, and Thresholds for each model
+data_svm <- data.frame(FPR = 1 - roc_svm$specificities, TPR = roc_svm$sensitivities, Threshold = roc_svm$thresholds)
+data_nb <- data.frame(FPR = 1 - roc_nb$specificities, TPR = roc_nb$sensitivities, Threshold = roc_nb$thresholds)
+data_logistic <- data.frame(FPR = 1 - roc_logistic$specificities, TPR = roc_logistic$sensitivities, Threshold = roc_logistic$thresholds)
+```
+
+```{r}
+# Add SVM surface
+p <- plot_ly()
+p <- add_trace(p, x = data_svm$FPR, y = data_svm$TPR, z = data_svm$Threshold,
+               type = "mesh3d", name = paste("SVM (AUC =", round(auc_svm, 2), ")"), color = I("blue"))
+```
+
+```{r}
+# Add Naive Bayes surface
+
+p <- add_trace(p, x = data_nb$FPR, y = data_nb$TPR, z = data_nb$Threshold,
+               type = "mesh3d", name = paste("Naive Bayes (AUC =", round(auc_nb, 2), ")"), color = I("green"))
+
+```
+
+```{r}
+# Add Logistic Regression surface
+p <- add_trace(p, x = data_logistic$FPR, y = data_logistic$TPR, z = data_logistic$Threshold,
+               type = "mesh3d", name = paste("Logistic Regression (AUC =", round(auc_logistic, 2), ")"), color = I("red"))
+
+```
+
+```{r}
+# Layout for the 3D plot
+p <- layout(p, scene = list(
+  xaxis = list(title = "False Positive Rate (FPR)"),
+  yaxis = list(title = "True Positive Rate (TPR)"),
+  zaxis = list(title = "Threshold")
+),
+title = "3D ROC Surface Plot Comparison")
+print(p)
+```
+
+```{r}
+
+library(pROC)
+library(ggplot2)
+library(gridExtra)
+
+# Create data frames for each ROC curve
+roc_svm_df <- data.frame(specificity = rev(roc_svm$specificities), sensitivity = rev(roc_svm$sensitivities))
+roc_nb_df <- data.frame(specificity = rev(roc_nb$specificities), sensitivity = rev(roc_nb$sensitivities))
+roc_logistic_df <- data.frame(specificity = rev(roc_logistic$specificities), sensitivity = rev(roc_logistic$sensitivities))
+
+# Create the main ROC plot with facets
+facet_plot <- ggplot() +
+  geom_line(data = roc_svm_df, aes(x = specificity, y = sensitivity, color = "SVM"), size = 1) +
+  geom_line(data = roc_nb_df, aes(x = specificity, y = sensitivity, color = "Naive Bayes"), size = 1) +
+  geom_line(data = roc_logistic_df, aes(x = specificity, y = sensitivity, color = "Logistic Regression"), size = 1) +
+  facet_wrap(~ c("SVM", "Naive Bayes", "Logistic Regression"), scales = "free") +
+  labs(title = "ROC Curve Comparison by Model", x = "Specificity", y = "Sensitivity", color = "Model") +
+  scale_color_manual(values = c("SVM" = "blue", "Naive Bayes" = "green", "Logistic Regression" = "red")) +
+  theme_minimal() +
+  theme(
+    plot.title = element_text(hjust = 0.5, size = 14, face = "bold"),
+    strip.text = element_text(size = 12, face = "bold"),
+    legend.position = "bottom"
+  )
+
+# Create individual plots for each model
+svm_plot <- ggplot(roc_svm_df, aes(x = specificity, y = sensitivity)) +
+  geom_line(color = "blue", size = 1) +
+  labs(title = "SVM", x = "Specificity", y = "Sensitivity") +
+  theme_minimal()
+
+nb_plot <- ggplot(roc_nb_df, aes(x = specificity, y = sensitivity)) +
+  geom_line(color = "green", size = 1) +
+  labs(title = "Naive Bayes", x = "Specificity", y = "Sensitivity") +
+  theme_minimal()
+
+logistic_plot <- ggplot(roc_logistic_df, aes(x = specificity, y = sensitivity)) +
+  geom_line(color = "red", size = 1) +
+  labs(title = "Logistic Regression", x = "Specificity", y = "Sensitivity") +
+  theme_minimal()
+
+# Arrange the plots in a grid
+final_plot <- grid.arrange(svm_plot, nb_plot, logistic_plot, ncol = 3)
+
+# Display the final grid plot
+print(final_plot)
+```
+
+```{r}
+
+# Load necessary libraries
+library(pROC)
+
+
+# Create data frames for each ROC curve
+roc_svm_df <- data.frame(specificity = rev(roc_svm$specificities), sensitivity = rev(roc_svm$sensitivities))
+roc_nb_df <- data.frame(specificity = rev(roc_nb$specificities), sensitivity = rev(roc_nb$sensitivities))
+roc_logistic_df <- data.frame(specificity = rev(roc_logistic$specificities), sensitivity = rev(roc_logistic$sensitivities))
+
+# Create the main ROC plot
+main_plot <- ggplot() +
+  geom_line(data = roc_svm_df, aes(x = specificity, y = sensitivity), color = "blue", size = 1) +
+  geom_line(data = roc_nb_df, aes(x = specificity, y = sensitivity), color = "green", size = 1) +
+  geom_line(data = roc_logistic_df, aes(x = specificity, y = sensitivity), color = "red", , size = 1) +
+  labs(title = "ROC Curve Comparison", x = "Specificity", y = "Sensitivity") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, size = 14, face = "bold")) +
+  annotate("text", x = 0.6, y = 0.2, label = paste("SVM (AUC =", round(auc_svm, 2), ")"), color = "blue", size = 3, hjust = 0) +
+  annotate("text", x = 0.6, y = 0.15, label = paste("Naive Bayes (AUC =", round(auc_nb, 2), ")"), color = "green", size = 3, hjust = 0) +
+  annotate("text", x = 0.6, y = 0.1, label = paste("Logistic Regression (AUC =", round(auc_logistic, 2), ")"), color = "red", size = 3, hjust = 0)
+
+# Create the zoomed-in plot
+zoom_plot <- ggplot() +
+  geom_line(data = roc_svm_df, aes(x = specificity, y = sensitivity), color = "blue", size = 1) +
+  geom_line(data = roc_nb_df, aes(x = specificity, y = sensitivity), color = "green", size = 1) +
+  geom_line(data = roc_logistic_df, aes(x = specificity, y = sensitivity), color = "red", size = 1) +
+  coord_cartesian(xlim = c(0.9, 1), ylim = c(0.9, 1)) +
+  theme_minimal() +
+  theme(axis.title = element_blank(), axis.text = element_blank(), axis.ticks = element_blank(), plot.background = element_rect(fill = "white", color = "black"))
+
+# Combine the main plot with the zoomed-in plot as an inset
+library(cowplot)
+final_plot <- ggdraw() +
+  draw_plot(main_plot) +
+  draw_plot(zoom_plot, x = 0.3, y = 0.4, width = 0.35, height = 0.4)
+
+# Display the final combined plot
+#print(final_plot)
+
+```
